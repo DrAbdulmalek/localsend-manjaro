@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# LocalSend launcher for Manjaro — checks installation, installs if needed, then launches
+set -euo pipefail
+
+APP_NAME="LocalSend"
+FLATPAK_ID="app.localsend.LocalSend"
+AUR_PKG="localsend"
+
+info() { printf '✓ %s\n' "$*"; }
+warn() { printf '⚠ %s\n' "$*"; }
+err()  { printf '✗ %s\n' "$*" >&2; exit 1; }
+
+# 1) Check if already running/installed
+if command -v localsend >/dev/null 2>&1; then
+    info " launching $APP_NAME..."
+    exec localsend "$@"
+fi
+
+if flatpak list 2>/dev/null | grep -q "$FLATPAK_ID"; then
+    info " launching $APP_NAME (Flatpak)..."
+    exec flatpak run "$FLATPAK_ID" "$@"
+fi
+
+# 2) Try to install
+warn "$APP_NAME not installed — attempting auto-install..."
+
+# Try Flatpak first (most reliable)
+if command -v flatpak >/dev/null 2>&1; then
+    info "Installing via Flatpak..."
+    flatpak install -y flathub "$FLATPAK_ID" && {
+        info "Flatpak install complete."
+        exec flatpak run "$FLATPAK_ID" "$@"
+    }
+fi
+
+# Try AUR via pamac
+if command -v pamac >/dev/null 2>&1; then
+    info "Installing via pamac (AUR)..."
+    pamac install -y "$AUR_PKG" && {
+        info "AUR install complete."
+        exec localsend "$@"
+    }
+fi
+
+# Try yay
+if command -v yay >/dev/null 2>&1; then
+    info "Installing via yay (AUR)..."
+    yay -S --noconfirm "$AUR_PKG" && {
+        info "AUR install complete."
+        exec localsend "$@"
+    }
+fi
+
+err "Could not install $APP_NAME automatically.
+Install manually:
+  Flatpak: flatpak install flathub app.localsend.LocalSend
+  AUR:     pamac install localsend
+  Web:     https://localsend.org"

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=LocalSend
+GenericName=inclusive file sharing
+Comment=LocalSend — open-source wireless file transfer
+Exec=@EXEC@
+Icon=@ICON@
+Terminal=false
+Categories=Network;FileTransfer;Utility;
+Keywords=localsend;share;transfer;file;p2p;wireless;phone;computer;
+StartupNotify=true
